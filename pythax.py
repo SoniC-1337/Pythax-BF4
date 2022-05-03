@@ -160,9 +160,6 @@ class features:
 
 class Pythax():
 
-    def __init__(self):
-        asyncio.run(self.winmain())
-
     @staticmethod
     async def winmain():
         try:
@@ -174,16 +171,24 @@ class Pythax():
             print("player manager : {}".format(hex(G.player_manager())))
 
             # throws error when trying to get player array, prob reading wrong type
-            # print("player array : {}".format(hex(G.players())))
+            print("player array : {}".format(hex(G.players())))
+
+            class THREADS:
+                @classmethod
+                def call_hacks(self):
+                    features.aimbot().start()
+                    features.esp().start()
+                    features.recoil().start()
+                    features.minimap().start()
+                    features.spread().start()
+                    features.engine_chams().start()
+
+                def __init__(self):
+                    self.call_hacks()
 
 
-            features.aimbot().start()
-            features.esp().start()
-            features.recoil().start()
-            features.minimap().start()
-            features.spread().start()
-            features.engine_chams().start()
-    
+            THREADS()
+
             while True:
                 for i in range(70):
                     entity = G.get_entity(i)
@@ -192,6 +197,10 @@ class Pythax():
     
         except Exception as e:
             print(e)
+
+    
+    def __init__(self):
+        asyncio.run(self.winmain())
 
 
 if __name__ == '__main__':
