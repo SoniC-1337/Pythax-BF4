@@ -68,10 +68,10 @@ class process:
 
         def is_visible(self, soldier):
             Occluded = battlefield.read_bool(soldier + offsets.OFFSET_OCCLUDED)
-            if Occluded:
-                return Occluded
+            if not Occluded:
+                return True
             else:
-                pass
+                return False
 
         def get_team(self, entity):
             return battlefield.read_int(entity + offsets.OFFSET_TEAMID)
