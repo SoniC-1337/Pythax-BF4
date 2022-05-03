@@ -2,6 +2,10 @@ import threading
 import pymem
 from tkinter import *
 import numpy as np
+import asyncio
+import sys
+
+
 
 
 class offsets:
@@ -26,68 +30,72 @@ class offsets:
     OFFSET_OCCLUDED = (0x5B1)
 
 
+
 class process:
-    global battlefield
-    battlefield = pymem.Pymem("bf4.exe")
 
     class game:
 
+        def __init__(self):
+            self.battlefield = pymem.Pymem("bf4.exe")
+
         def screen_size(self):
-            m_pScreen = battlefield.read_bytes(
+            m_pScreen = self.battlefield.read_int(
                 offsets.OFFSET_DXRENDERER + 0x38)
 
             if not m_pScreen:
                 return 0
 
             sizes = np.empty(2)
-            sizes[0] = battlefield.read_int(m_pScreen + 0x58)
-            sizes[1] = battlefield.read_int(m_pScreen + 0x5C)
+            sizes[0] = self.battlefield.read_int(m_pScreen + 0x58)
+            sizes[1] = self.battlefield.read_int(m_pScreen + 0x5C)
 
             return sizes
 
         def game_ctx(self):
-            return battlefield.read_bytes(offsets.OFFSET_CLIENTGAMECONTEXT)
+            return self.battlefield.read_int(offsets.OFFSET_CLIENTGAMECONTEXT)
 
         def player_manager(self):
-            return battlefield.read_bytes(self.game_ctx() + offsets.OFFSET_PLAYERMANAGER)
+            return self.battlefield.read_int(self.game_ctx() + offsets.OFFSET_PLAYERMANAGER)
 
         def localplayer(self):
-            return battlefield.read_bytes(self.player_manager() + offsets.OFFSET_LOCALPLAYER)
+            return self.battlefield.read_int(self.player_manager() + offsets.OFFSET_LOCALPLAYER)
 
         def players(self):
-            return battlefield.read_bytes(self.player_manager() + offsets.OFFSET_PLAYERS_ARRAY)
+            return self.battlefield.read_int(self.player_manager() + offsets.OFFSET_PLAYERS_ARRAY)
 
         def get_entity(self, index):
-            return battlefield.read_bytes(self.players() + (index * 0x8))
+            return self.battlefield.read_int(self.players() + (index * 0x8))
 
         def get_soldier(self, entity):
-            battlefield.read_bytes(entity + offsets.OFFSET_SOLDIER)
+            self.battlefield.read_int(entity + offsets.OFFSET_SOLDIER)
 
         def get_health(self, entity):
-            return battlefield.read_float(battlefield.read_bytes(entity + 0x140) + 0x20)
+            return self.battlefield.read_float(self.battlefield.read_int(entity + 0x140) + 0x20)
 
         def is_visible(self, soldier):
-            Occluded = battlefield.read_bool(soldier + offsets.OFFSET_OCCLUDED)
+            Occluded = self.battlefield.read_bool(
+                soldier + offsets.OFFSET_OCCLUDED)
             if not Occluded:
                 return True
             else:
                 return False
 
         def get_team(self, entity):
-            return battlefield.read_int(entity + offsets.OFFSET_TEAMID)
+            return self.battlefield.read_int(entity + offsets.OFFSET_TEAMID)
 
         def get_position(self, soldier):
-            battlefield.read_bytes(battlefield.read_int(soldier + 0x490) + 0x30)
-
+            self.battlefield.read_int(
+                self.battlefield.read_int(soldier + 0x490) + 0x30)
 
 
 # from this point everything still has to be done
+
 
     class anti_cheat:
         class bypass(threading.Thread):
 
             def __init__(self):
-                threading.Thread.__init__ = True
+                threading.Thread.__init__(self)
 
             def run(self):
                 print("anticheat bypass running")
@@ -98,7 +106,8 @@ class features:
     class aimbot(threading.Thread):
 
         def __init__(self):
-            threading.Thread.__init__ = True
+            threading.Thread.__init__(self)
+            self.run()
 
         def run(self):
             print("called aimbot")
@@ -106,7 +115,8 @@ class features:
     class esp(threading.Thread):
 
         def __init__(self):
-            threading.Thread.__init__ = True
+            threading.Thread.__init__(self)
+            self.run()
 
         def run(self):
             print("called esp")
@@ -114,7 +124,8 @@ class features:
     class recoil(threading.Thread):
 
         def __init__(self):
-            threading.Thread.__init__ = True
+            threading.Thread.__init__(self)
+            self.run()
 
         def run(self):
             print("called recoil")
@@ -122,7 +133,8 @@ class features:
     class minimap(threading.Thread):
 
         def __init__(self):
-            threading.Thread.__init__ = True
+            threading.Thread.__init__(self)
+            self.run()
 
         def run(self):
             print("called minimap")
@@ -130,7 +142,8 @@ class features:
     class spread(threading.Thread):
 
         def __init__(self):
-            threading.Thread.__init__ = True
+            threading.Thread.__init__(self)
+            self.run()
 
         def run(self):
             print("called spread")
@@ -138,7 +151,48 @@ class features:
     class engine_chams(threading.Thread):
 
         def __init__(self):
-            threading.Thread.__init__ = True
+            threading.Thread.__init__(self)
+            self.run()
 
         def run(self):
             print("called engine_chams")
+
+
+class Pythax():
+
+    def __init__(self):
+        asyncio.run(self.winmain())
+
+    @staticmethod
+    async def winmain():
+        try:
+            BF4 = process()
+            G = BF4.game()
+    
+            print("game base address : {}".format(hex(G.battlefield.base_address)))
+            print("game context : {}".format(hex(G.game_ctx())))
+            print("player manager : {}".format(hex(G.player_manager())))
+
+            # throws error when trying to get player array, prob reading wrong type
+            # print("player array : {}".format(hex(G.players())))
+
+
+            features.aimbot().start()
+            features.esp().start()
+            features.recoil().start()
+            features.minimap().start()
+            features.spread().start()
+            features.engine_chams().start()
+    
+            while True:
+                for i in range(70):
+                    entity = G.get_entity(i)
+                    print(str(G.get_health(entity))+str(i))
+    
+    
+        except Exception as e:
+            print(e)
+
+
+if __name__ == '__main__':
+    Pythax()
