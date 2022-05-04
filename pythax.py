@@ -96,6 +96,7 @@ class process:
 
             def __init__(self):
                 threading.Thread.__init__(self)
+                self.run()
 
             def run(self):
                 print("anticheat bypass running")
